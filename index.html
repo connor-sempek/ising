@@ -1,0 +1,230 @@
+<html xmlns="http://www.w3.org/1999/xhtml" >
+
+<head>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="js/ising.js"></script>
+
+  <title>Ising Model Vis</title>
+
+  <style>
+
+    h1, p, div {
+      font-family: Helvetica, sans-serif;
+    }
+
+    div.input-title {
+      padding-top: 10;
+    }
+
+    output, markName {
+      font-family: Helvetica, sans-serif;
+      font-size: 12;
+      font-weight: 100;
+      font-style: italic;
+      color: red;
+    }
+
+    .input-title {
+      font-family: Helvetica, sans-serif;
+      font-size: 16;
+      font-weight: 100;
+      color: black;
+    }
+
+    .input-note {
+      font-family: Helvetica, sans-serif;
+      font-size: 12;
+      font-weight: 100;
+      font-style: italic;
+      color: gray;
+    }
+
+    .form-container {
+      display: flex;
+      flex-flow: row wrap;
+      align-items: center;
+    }
+
+    .svg-button:hover {
+      opacity: 0.7;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<h1>
+Ising Model Visualization
+</h1>
+
+<p>
+In an Ising model simulation, we track the evolution of the spin states encoded as square array of values equal to &PlusMinus;1. The goal of this code is to visualize a spin state array and provide interactive formatting.
+</p>
+
+<div>
+  <div class="input-title">Array dimension</div>
+  <div class="input-note">Draw an array which is 
+    <output class="slider-n-output"></output> cells &times; 
+    <output class="slider-n-output"></output> cells
+  </div> 
+  <input type="range" min="1" max="100" value="50" class="slider" id="slider-n">
+</div>
+
+<div>
+  <div class="input-title">Cell dimension</div>
+  <div class="input-note">Draw cells which are 
+    <output class="slider-sideLength-output"></output> px &times; 
+    <output class="slider-sideLength-output"></output> px
+  </div> 
+  <input type="range" min="1" max="100" value="5" class="slider" id="slider-sideLength">
+</div>
+
+<div>
+  <div class="input-title">Cell shape</div>
+  <div class="input-note">Draw cells as <markName color="red"></markName></div>
+  <div class="form-container">
+  <form id="form-markName-square" method="post">
+    <svg width="50" height="50">
+      <a href="#" id="button-markName-square">
+        <rect class="svg-button" id="button-markName-rect-svg" x="5" y="5" height="24" width="24" fill="red"></rect>
+      </a>
+    </svg>
+  </form>
+  <form id="form-markName-circle" method="post">
+    <svg width="100" height="50">
+      <a href="#" class="button-markName" id="button-markName-circle">
+        <circle class="svg-button" id="button-markName-circle-svg" cx="17" cy="17" r="12" fill="gray"></circle>
+      </a>
+    </svg>
+  </form>
+  </div>
+</div>
+
+
+<div>
+  <svg width=800 height=800>
+    <g id="lattice"></g>
+  </svg>
+</div>
+
+<script type="text/javascript">
+
+  // Allow array vis to update dynamically based on changes to inputs
+
+  // array dimension slider
+  var nSlider = document.getElementById("slider-n")
+  let nSliderOutputs = document.getElementsByClassName('slider-n-output');
+  [...nSliderOutputs].forEach(function(e) {
+    e.innerHTML = nSlider.value;
+  });
+
+  // cell dimension (sideLength) slider
+  var sideLengthSlider = document.getElementById("slider-sideLength")
+  let sideLengthSliderOutputs = document.getElementsByClassName('slider-sideLength-output');
+  [...sideLengthSliderOutputs].forEach(function(e) {
+    e.innerHTML = sideLengthSlider.value;
+  });
+
+  // initialize array vis parameters
+  var n = nSlider.value, 
+    markName = 'rect',
+    pad = 10,
+    sideLength = sideLengthSlider.value,
+    spinColor = ['#204DF5', 'violet']
+    
+  // draw array based on initial vis parameter values
+  var g = document.getElementById("lattice")
+  drawSpinArray(g, n, markName, pad, sideLength, spinColor)
+
+  function updateParameters() {
+    n = nSlider.value;
+    sideLength = sideLengthSlider.value;
+  };
+
+  function updateInnerHTML() {
+    [...nSliderOutputs].forEach(function(e) {
+      e.innerHTML = nSlider.value;
+    });
+
+    [...sideLengthSliderOutputs].forEach(function(e) {
+      e.innerHTML = sideLengthSlider.value;
+     });
+  };
+
+  function update() {
+    let elementsArray = document.querySelectorAll("input");
+    elementsArray.forEach(function(elem) {
+        elem.addEventListener("input", function() {
+          
+          // update parameters to current input values
+          updateParameters()
+
+          // update html displaying input values
+          updateInnerHTML()
+
+          // clear children of g element
+          d3.select("g").selectAll(".cell").remove(); 
+          
+          // redraw array with updated dimensions
+          drawSpinArray(g, n, markName, pad, sideLength, spinColor) 
+        });
+    });
+
+  };
+  update();
+
+  // cell shape buttons
+  // default initial settings
+  if (markName == 'rect') {document.querySelector("markName").innerHTML = 'squares';}
+  else if (markName == 'circle') {document.querySelector("markName").innerHTML = 'circles';}
+
+  var buttonMarkSquare = document.getElementById("form-markName-square")
+  buttonMarkSquare.addEventListener("click", function() {
+    // update markName variable
+    markName = 'rect'
+
+    // update clicked button color to red, all others gray
+    rect = document.getElementById("button-markName-rect-svg")
+    rect.setAttribute("fill", "red")
+
+    circ = document.getElementById("button-markName-circle-svg")
+    circ.setAttribute("fill", "gray")
+
+    // update html text to markName
+    document.querySelector("markName").innerHTML = 'squares';
+
+    // clear children of g element
+    d3.select("g").selectAll(".cell").remove(); 
+    
+    // redraw array with updated dimensions
+    drawSpinArray(g, n, markName, pad, sideLength, spinColor) 
+  });
+
+  var buttonMarkCircle = document.getElementById("form-markName-circle")
+  buttonMarkCircle.addEventListener("click", function() {
+    // update markName variable
+    markName = 'circle'
+
+    // update clicked button color to red, all others gray
+    circ = document.getElementById("button-markName-circle-svg")
+    circ.setAttribute("fill", "red")
+
+    rect = document.getElementById("button-markName-rect-svg")
+    rect.setAttribute("fill", "gray")
+
+    // update html text to markName
+    document.querySelector("markName").innerHTML = 'circles';
+
+    // clear children of g element
+    d3.select("g").selectAll(".cell").remove(); 
+    
+    // redraw array with updated dimensions
+    drawSpinArray(g, n, markName, pad, sideLength, spinColor) 
+  });
+
+</script>
+
+</body>
+</html>
