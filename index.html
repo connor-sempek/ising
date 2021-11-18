@@ -45,8 +45,28 @@
       align-items: center;
     }
 
+    .container {
+      display: flex;
+      flex-flow: row wrap;
+      align-items: top;
+      padding: 5;
+    }
+
+    .container > div {
+      margin:  10px;
+    }
+
     .svg-button:hover {
       opacity: 0.7;
+    }
+
+    .color-selector {
+      background: none;
+      border: none;
+    }
+
+    posSpin, negSpin {
+      font-weight:  800;
     }
 
   </style>
@@ -63,50 +83,80 @@ Ising Model Visualization
 In an Ising model simulation, we track the evolution of the spin states encoded as square array of values equal to &PlusMinus;1. The goal of this code is to visualize a spin state array and provide interactive formatting.
 </p>
 
-<div>
-  <div class="input-title">Array dimension</div>
-  <div class="input-note">Draw an array which is 
-    <output class="slider-n-output"></output> cells &times; 
-    <output class="slider-n-output"></output> cells
-  </div> 
-  <input type="range" min="1" max="100" value="50" class="slider" id="slider-n">
-</div>
+<div class="container">
+  <div class="toolbar">
 
-<div>
-  <div class="input-title">Cell dimension</div>
-  <div class="input-note">Draw cells which are 
-    <output class="slider-sideLength-output"></output> px &times; 
-    <output class="slider-sideLength-output"></output> px
-  </div> 
-  <input type="range" min="1" max="100" value="5" class="slider" id="slider-sideLength">
-</div>
+    <!-- Array dimension slider -->
+    <div>
+      <div class="input-title">Array dimension</div>
+      <div class="input-note">Draw an array which is 
+        <output class="slider-n-output"></output> cells &times; 
+        <output class="slider-n-output"></output> cells
+      </div> 
+      <input type="range" min="1" max="100" value="50" class="slider" id="slider-n">
+    </div>
 
-<div>
-  <div class="input-title">Cell shape</div>
-  <div class="input-note">Draw cells as <markName color="red"></markName></div>
-  <div class="form-container">
-  <form id="form-markName-square" method="post">
-    <svg width="50" height="50">
-      <a href="#" id="button-markName-square">
-        <rect class="svg-button" id="button-markName-rect-svg" x="5" y="5" height="24" width="24" fill="red"></rect>
-      </a>
-    </svg>
-  </form>
-  <form id="form-markName-circle" method="post">
-    <svg width="100" height="50">
-      <a href="#" class="button-markName" id="button-markName-circle">
-        <circle class="svg-button" id="button-markName-circle-svg" cx="17" cy="17" r="12" fill="gray"></circle>
-      </a>
-    </svg>
-  </form>
+    <!-- Cell dimension slider -->
+    <div>
+      <div class="input-title">Cell dimension</div>
+      <div class="input-note">Draw cells which are 
+        <output class="slider-sideLength-output"></output> px &times; 
+        <output class="slider-sideLength-output"></output> px
+      </div> 
+      <input type="range" min="1" max="100" value="5" class="slider" id="slider-sideLength">
+    </div>
+
+    <!-- Cell color selector -->
+    <div>
+      <div class="input-title">Cell color</div>
+      <div class="input-note">Color cells based on values of spin 
+        <posSpin style="color: #204DF5;"> +1 </posSpin> 
+        / 
+        <negSpin style="color: #D06BF5;"> -1 </negSpin>
+      </div>
+      <div class="form-container">
+        <div>
+            <input type="color" class="color-selector" id="pos-spin" name="+1"
+                   value="#204DF5">
+        </div>
+        <div>
+            <input type="color" class="color-selector" id="neg-spin" name="-1"
+                    value="#D06BF5">
+        </div>
+      </div>
+    </div>
+
+    <!-- Cell shape buttons -->
+    <div>
+      <div class="input-title">Cell shape</div>
+      <div class="input-note">Draw cells as <markName color="red"></markName></div>
+      <div class="form-container">
+      <form id="form-markName-square" method="post">
+        <svg width="50" height="50">
+          <a href="#" id="button-markName-square">
+            <rect class="svg-button" id="button-markName-rect-svg" x="5" y="5" height="24" width="24" fill="red"></rect>
+          </a>
+        </svg>
+      </form>
+      <form id="form-markName-circle" method="post">
+        <svg width="100" height="50">
+          <a href="#" class="button-markName" id="button-markName-circle">
+            <circle class="svg-button" id="button-markName-circle-svg" cx="17" cy="17" r="12" fill="gray"></circle>
+          </a>
+        </svg>
+      </form>
+      </div>
+    </div>
+  </div> 
+
+  <div class="vis">
+  <!-- Spin array visualization -->
+    <div>
+      <svg width=800 height=800>
+        <g id="lattice"></g>
+      </svg>
+    </div>
   </div>
-</div>
-
-
-<div>
-  <svg width=800 height=800>
-    <g id="lattice"></g>
-  </svg>
 </div>
 
 <script type="text/javascript">
@@ -115,28 +165,17 @@ In an Ising model simulation, we track the evolution of the spin states encoded 
 
   // array dimension slider
   var nSlider = document.getElementById("slider-n")
-  let nSliderOutputs = document.getElementsByClassName('slider-n-output');
+  let nSliderOutputs = document.getElementsByClassName("slider-n-output");
   [...nSliderOutputs].forEach(function(e) {
     e.innerHTML = nSlider.value;
   });
 
   // cell dimension (sideLength) slider
   var sideLengthSlider = document.getElementById("slider-sideLength")
-  let sideLengthSliderOutputs = document.getElementsByClassName('slider-sideLength-output');
+  let sideLengthSliderOutputs = document.getElementsByClassName("slider-sideLength-output");
   [...sideLengthSliderOutputs].forEach(function(e) {
     e.innerHTML = sideLengthSlider.value;
   });
-
-  // initialize array vis parameters
-  var n = nSlider.value, 
-    markName = 'rect',
-    pad = 10,
-    sideLength = sideLengthSlider.value,
-    spinColor = ['#204DF5', 'violet']
-    
-  // draw array based on initial vis parameter values
-  var g = document.getElementById("lattice")
-  drawSpinArray(g, n, markName, pad, sideLength, spinColor)
 
   function updateParameters() {
     n = nSlider.value;
@@ -177,13 +216,13 @@ In an Ising model simulation, we track the evolution of the spin states encoded 
 
   // cell shape buttons
   // default initial settings
-  if (markName == 'rect') {document.querySelector("markName").innerHTML = 'squares';}
-  else if (markName == 'circle') {document.querySelector("markName").innerHTML = 'circles';}
+  if (markName == "rect") {document.querySelector("markName").innerHTML = "squares";}
+  else if (markName == "circle") {document.querySelector("markName").innerHTML = "circles";}
 
   var buttonMarkSquare = document.getElementById("form-markName-square")
   buttonMarkSquare.addEventListener("click", function() {
     // update markName variable
-    markName = 'rect'
+    markName = "rect"
 
     // update clicked button color to red, all others gray
     rect = document.getElementById("button-markName-rect-svg")
@@ -193,7 +232,7 @@ In an Ising model simulation, we track the evolution of the spin states encoded 
     circ.setAttribute("fill", "gray")
 
     // update html text to markName
-    document.querySelector("markName").innerHTML = 'squares';
+    document.querySelector("markName").innerHTML = "squares";
 
     // clear children of g element
     d3.select("g").selectAll(".cell").remove(); 
@@ -205,7 +244,7 @@ In an Ising model simulation, we track the evolution of the spin states encoded 
   var buttonMarkCircle = document.getElementById("form-markName-circle")
   buttonMarkCircle.addEventListener("click", function() {
     // update markName variable
-    markName = 'circle'
+    markName = "circle"
 
     // update clicked button color to red, all others gray
     circ = document.getElementById("button-markName-circle-svg")
@@ -215,7 +254,7 @@ In an Ising model simulation, we track the evolution of the spin states encoded 
     rect.setAttribute("fill", "gray")
 
     // update html text to markName
-    document.querySelector("markName").innerHTML = 'circles';
+    document.querySelector("markName").innerHTML = "circles";
 
     // clear children of g element
     d3.select("g").selectAll(".cell").remove(); 
@@ -223,6 +262,62 @@ In an Ising model simulation, we track the evolution of the spin states encoded 
     // redraw array with updated dimensions
     drawSpinArray(g, n, markName, pad, sideLength, spinColor) 
   });
+
+  // cell color pickers
+  var posSpinColorPicker = document.getElementById("pos-spin")
+  posSpinColorPicker.addEventListener("input", function (event) {
+    var posSpin = document.querySelector("posSpin")
+    posSpin.style.color = event.target.value;
+
+      // update color of array vis
+      let children = document.getElementById("lattice").children
+      console.log(children)
+
+      // update color variable
+      spinColor = [negSpinColorPicker.value, event.target.value]
+      
+      // update color of cells in array
+      Array.from(children).forEach(mark => {
+        let cellName = mark.attributes.name.nodeValue
+        if (cellName == "posSpin") {
+          mark.setAttribute("fill", event.target.value)
+        };
+      });
+
+    }, false);
+
+  var negSpinColorPicker = document.getElementById("neg-spin")
+  console.log(negSpinColorPicker.value)
+    negSpinColorPicker.addEventListener("input", function (event) {
+      var negSpin = document.querySelector("negSpin")
+      negSpin.style.color = event.target.value;
+
+      // update color of array vis
+      let children = document.getElementById("lattice").children
+      console.log(children)
+
+      // update color variable
+      spinColor = [event.target.value, posSpinColorPicker.value]
+
+      // update color of cells in array
+      Array.from(children).forEach(mark => {
+        let cellName = mark.attributes.name.nodeValue
+        if (cellName == "negSpin") {
+          mark.setAttribute("fill", event.target.value)
+        };
+      });
+    }, false);
+
+  // initialize array vis parameters
+  var n = nSlider.value, 
+    markName = "rect",
+    pad = 10,
+    sideLength = sideLengthSlider.value,
+    spinColor = [posSpinColorPicker.value, negSpinColorPicker.value]
+    
+  // draw array based on initial vis parameter values
+  var g = document.getElementById("lattice")
+  drawSpinArray(g, n, markName, pad, sideLength, spinColor)
 
 </script>
 

@@ -34,32 +34,32 @@ function generateRandomSpinArray(nrows, ncols) {
 
 // given a set of parameters, generate a SVG rect mark at some position in the array
 function createRect(svgns, i, j, sideLength, pad, rx=null, ry=null) {
-  rect = document.createElementNS(svgns, 'rect')
-  rect.setAttribute('x', sideLength * j)
-  rect.setAttribute('y', sideLength * i)
-  rect.setAttribute('width', sideLength)
-  rect.setAttribute('height', sideLength)
-  if (rx != null) {rect.setAttribute('rx', rx)}
-  if (ry != null) {rect.setAttribute('ry', ry)}
-  rect.setAttribute('class', 'cell')
+  rect = document.createElementNS(svgns, "rect")
+  rect.setAttribute("x", sideLength * j)
+  rect.setAttribute("y", sideLength * i)
+  rect.setAttribute("width", sideLength)
+  rect.setAttribute("height", sideLength)
+  if (rx != null) {rect.setAttribute("rx", rx)}
+  if (ry != null) {rect.setAttribute("ry", ry)}
+  rect.setAttribute("class", "cell")
   return rect;
 };
 
 // given a set of parameters, generate a SVG circle mark at some position in the array
 function createCircle(svgns, i, j, sideLength, pad) {
-  circ = document.createElementNS(svgns, 'circle')
-  circ.setAttribute('cx', sideLength * j + sideLength / 2)
-  circ.setAttribute('cy', sideLength * i + sideLength / 2)
-  circ.setAttribute('r', sideLength / 2)
-  circ.setAttribute('class', 'cell')
+  circ = document.createElementNS(svgns, "circle")
+  circ.setAttribute("cx", sideLength * j + sideLength / 2)
+  circ.setAttribute("cy", sideLength * i + sideLength / 2)
+  circ.setAttribute("r", sideLength / 2)
+  circ.setAttribute("class", "cell")
   return circ;
 };
 
 // given a set of parameters, generate an SVG mark at some position in the array
 function createMark(svgns, markName, i, j, sideLength, pad, rx=null, ry=null) {
-  if (markName == 'rect') {
+  if (markName == "rect") {
     return createRect(svgns, i, j, sideLength, pad, rx, ry);
-  } else if (markName == 'circle') {
+  } else if (markName == "circle") {
     return createCircle(svgns, i, j, sideLength, pad);
   }
 };
@@ -72,7 +72,8 @@ function drawSpinArray(parent, n, markName, pad, sideLength, spinColor) {
     for (let j = 0; j < n; j++) {
       var spin = lattice[i][j]
       mark = createMark(svgns, markName, i, j, sideLength, pad)
-      mark.setAttribute('fill', spin < 0 ? spinColor[0] : spinColor[1])
+      mark.setAttribute("fill", spin < 0 ? spinColor[0] : spinColor[1])
+      mark.setAttribute("name", spin < 0 ? "negSpin" : "posSpin")
       parent.appendChild(mark)
     }
   }
